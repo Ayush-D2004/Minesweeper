@@ -42,18 +42,20 @@
 
     </FrameLayout>
 
-    <Button
+    <TextView
         android:id="@+id/restartButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
         android:layout_marginBottom="8dp"
-        android:background="@drawable/button_background"
-        android:paddingStart="16dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="8dp"
-        android:text="Restart"
+        android:layout_marginStart="64dp"
+        android:layout_marginEnd="64dp"
+        android:background="@null"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="Tap to restart"
         android:textColor="@color/white"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
