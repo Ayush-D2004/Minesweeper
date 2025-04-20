@@ -19,5 +19,10 @@
     <color name="teal_200">#03DAC5</color>
     <color name="teal_700">#018786</color>
     <color name="black">#000000</color>
+    <color name="difficulty_easy">#2196F3</color>
+    <color name="difficulty_medium">#FF9800</color>
+    <color name="difficulty_hard">#F44336</color>
+    <color name="difficulty_unselected">#BDBDBD</color>
+
 
 </resources>

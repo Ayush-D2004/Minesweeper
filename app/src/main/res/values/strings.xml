@@ -1,13 +1,18 @@
 <resources>
-    <string name="app_name">minesweeper</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
-    <string name="minesweeper">Minesweeper</string>
-    <string name="grid_size_8_30">Grid Size (8-30)</string>
-    <string name="_16">16</string>
-    <string name="number_of_mines">Number of Mines</string>
-    <string name="_40">40</string>
-    <string name="start_game">Start Game</string>
+    <string name="app_name">Minesweeper</string>
+    <string name="time">⏱️Time: %1$02d:%2$02d</string>
+    <string name="flags">🚩Flags: %1$d</string>
+    <string name="hint">💡Hint</string>
+    <string name="easy">Easy</string>
+    <string name="medium">Medium</string>
+    <string name="hard">Hard</string>
+    <string name="play_again"> Play\n Again\n🔄</string>
+    <string name="return_home">Return \nHome\n🏠</string>
+    <string name="you_win">You Win! 😎</string>
+    <string name="game_over">Game Over! ☹️</string>
+    <string name="your_time">Time: %1$02d:%2$02d</string>
+    <string name="best">Best: %1$02d:%2$02d</string>
+    <string name="no_high_score">Best: —:—</string>
     <string name="start">Start</string>
+    <string name="restart">🔄Restart</string>
 </resources>

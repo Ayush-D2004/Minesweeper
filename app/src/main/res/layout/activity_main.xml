@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,38 +8,163 @@
     android:background="@drawable/main_background"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/titleText"
+    <!-- Home Screen -->
+    <LinearLayout
+        android:id="@+id/homeLayout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
         android:gravity="center"
-        android:text="Minesweeper"
-        android:textSize="55sp"
-        android:textStyle="bold"
-        android:backgroundTint="@null"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
-
-    <TextView
-        android:id="@+id/startButton"
-        android:layout_width="0dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="64dp"
-        android:layout_marginStart="48dp"
-        android:layout_marginEnd="48dp"
-        android:background="@null"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center"
-        android:text="Start"
-        android:textSize="50sp"
-        android:backgroundTint="@null"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/titleText"
-        tools:ignore="HardcodedText" />
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="MINESWEEPER"
+            android:textSize="42sp"
+            android:textStyle="bold"
+            android:layout_marginTop="32dp"
+            android:textColor="@android:color/white"
+            tools:ignore="HardcodedText" />
+
+        <Button
+            android:id="@+id/startButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="180dp"
+            android:gravity="center"
+            android:text="Start"
+            android:fontFamily="cursive"
+            android:textSize="24sp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#2E8B57"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
+
+    <!-- Game Screen -->
+    <LinearLayout
+        android:id="@+id/gameLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+
+        <!-- Game Controls-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/time"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#FFDF00"/>
+
+            <View
+                android:layout_width="5dp"
+                android:layout_height="2dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/tvFlags"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/flags"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#FD7000"/>
+
+            <View
+                android:layout_width="5dp"
+                android:layout_height="2dp"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/btnHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/hint"
+                android:backgroundTint="#4CAF50"
+                android:textColor="#FFFFFF"/>
+        </LinearLayout>
+
+        <!-- Grid Container-->
+        <FrameLayout
+            android:id="@+id/gridContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="8dp"
+            android:background="#CCCCCC"
+            app:layout_constraintDimensionRatio="1:1">
+
+            <GridLayout
+                android:id="@+id/gameGrid"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"/>
+        </FrameLayout>
+
+        <!-- Difficulty Buttons-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/btnEasy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/easy"
+                android:backgroundTint="#2196F3"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+
+            <Button
+                android:id="@+id/btnMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/medium"
+                android:backgroundTint="#FF9800"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+
+            <Button
+                android:id="@+id/btnHard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/hard"
+                android:backgroundTint="#F44336"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+        </LinearLayout>
+
+        <!-- Restart Button-->
+        <Button
+            android:id="@+id/btnRestart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/restart"
+            android:backgroundTint="#006400"
+            android:textColor="#FFFFFF"/>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
