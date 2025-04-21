@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/dialog_background"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Exit Game?"
+        android:textSize="24sp"
+        android:textColor="#FFFFFF"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnHome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Go to Home"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#2196F3"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btnQuit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Quit Game"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#F44336"
+        android:layout_marginBottom="16dp" />
+
+    <ImageView
+        android:id="@+id/ivClose"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:layout_gravity="center"
+        android:tint="#FFFFFF" />
+</LinearLayout> 

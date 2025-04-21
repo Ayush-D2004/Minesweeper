@@ -13,15 +13,21 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.TextViewCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-public class MainActivity extends AppCompatActivity implements GameOverDialogFragment.GameOverListener {
+public class MainActivity extends AppCompatActivity implements 
+    GameOverDialogFragment.GameOverListener,
+    ExitGameDialogFragment.ExitGameListener {
 
     private GameBoard gameBoard;
     private Button btnEasy, btnMedium, btnHard;
@@ -34,6 +40,16 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
     private int secondsPassed = 0;
     private boolean timerRunning = false;
     private SharedPreferences sharedPreferences;
+    private UserDatabaseHelper dbHelper;
+    private User currentUser;
+    private EditText etUsername, etPassword;
+    private Button btnLogin, btnRegister;
+    private TextView tvWelcome, tvHighScore;
+    private RecyclerView rvUserProfiles;
+    private UserProfileAdapter userProfileAdapter;
+    private Button btnAddProfile;
+    private TextView tvSelectProfile;
+    private LinearLayout loginRegisterLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -41,14 +57,199 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        dbHelper = new UserDatabaseHelper(this);
+        initializeViews();
+        setupAnimations();
+        setupListeners();
+        setupUserProfiles();
+    }
+
+    private void initializeViews()
+    {
+        loginRegisterLayout = findViewById(R.id.loginRegisterLayout);
+        etUsername = findViewById(R.id.etUsername);
+        etPassword = findViewById(R.id.etPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+        btnRegister = findViewById(R.id.btnRegister);
+        tvWelcome = findViewById(R.id.tvWelcome);
+        tvHighScore = findViewById(R.id.tvHighScore);
+        rvUserProfiles = findViewById(R.id.rvUserProfiles);
+        btnAddProfile = findViewById(R.id.btnAddProfile);
+        tvSelectProfile = findViewById(R.id.tvSelectProfile);
+        
+        // Initialize game views
+        btnEasy = findViewById(R.id.btnEasy);
+        btnMedium = findViewById(R.id.btnMedium);
+        btnHard = findViewById(R.id.btnHard);
+        gameGrid = findViewById(R.id.gameGrid);
+        tvTimer = findViewById(R.id.tvTimer);
+        tvFlags = findViewById(R.id.tvFlags);
+        
+        // Initialize animations
         gridAnimations[0] = AnimationUtils.loadAnimation(this, R.anim.grid_item_top_in);
         gridAnimations[1] = AnimationUtils.loadAnimation(this, R.anim.grid_item_right_in);
         gridAnimations[2] = AnimationUtils.loadAnimation(this, R.anim.grid_item_bottom_in);
         gridAnimations[3] = AnimationUtils.loadAnimation(this, R.anim.grid_item_left_in);
         sharedPreferences = getSharedPreferences("MinesweeperPrefs", MODE_PRIVATE);
+    }
 
-        initializeHomeUI();
-        setupDifficultyAndHintButtons();
+    private void setupAnimations()
+    {
+        TextView titleText = findViewById(R.id.titleText);
+        Animation fadeScale = AnimationUtils.loadAnimation(this, R.anim.fade_scale_in);
+        titleText.startAnimation(fadeScale);
+
+        etUsername.startAnimation(fadeScale);
+        etPassword.startAnimation(fadeScale);
+        btnLogin.startAnimation(fadeScale);
+        btnRegister.startAnimation(fadeScale);
+    }
+
+    private void setupListeners()
+    {
+        btnLogin.setOnClickListener(v -> handleLogin());
+        btnRegister.setOnClickListener(v -> handleRegister());
+        btnAddProfile.setOnClickListener(v -> showLoginRegisterScreen());
+
+        // Setup difficulty buttons
+        btnEasy.setOnClickListener(v -> {
+            setupGame(5, 3);
+            highlightDifficultyButton(btnEasy);
+            updateHighScoreDisplay("easy");
+        });
+        btnMedium.setOnClickListener(v -> {
+            setupGame(8, 10);
+            highlightDifficultyButton(btnMedium);
+            updateHighScoreDisplay("medium");
+        });
+        btnHard.setOnClickListener(v -> {
+            setupGame(10, 20);
+            highlightDifficultyButton(btnHard);
+            updateHighScoreDisplay("hard");
+        });
+
+        // Setup hint button
+        Button btnHint = findViewById(R.id.btnHint);
+        if (btnHint != null) {
+            btnHint.setOnClickListener(v -> revealHint());
+        }
+
+        // Setup restart button
+        Button btnRestart = findViewById(R.id.btnRestart);
+        btnRestart.setOnClickListener(v -> setupGame(gridSize, numMines));
+    }
+
+    private void setupUserProfiles() {
+        rvUserProfiles.setLayoutManager(new LinearLayoutManager(this));
+        userProfileAdapter = new UserProfileAdapter(dbHelper.getAllUsers(), new UserProfileAdapter.OnUserProfileClickListener() {
+            @Override
+            public void onUserProfileClick(User user) {
+                onUserProfileSelected(user);
+            }
+
+            @Override
+            public void onProfileDeleted() {
+                // If the current user was deleted, clear it
+                if (currentUser != null && !dbHelper.checkUser(currentUser.getUsername(), currentUser.getPassword())) {
+                    currentUser = null;
+                }
+            }
+        }, dbHelper);
+        rvUserProfiles.setAdapter(userProfileAdapter);
+    }
+
+    private void onUserProfileSelected(User user) {
+        currentUser = user;
+        showGameScreen();
+        setupGame(gridSize, numMines);
+    }
+
+    private void showLoginRegisterScreen() {
+        loginRegisterLayout.setVisibility(View.VISIBLE);
+        btnAddProfile.setVisibility(View.GONE);
+    }
+
+    private void handleLogin()
+    {
+        String username = etUsername.getText().toString();
+        String password = etPassword.getText().toString();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please enter both username and password", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (dbHelper.checkUser(username, password)) {
+            currentUser = dbHelper.getUser(username);
+            loginRegisterLayout.setVisibility(View.GONE);
+            btnAddProfile.setVisibility(View.VISIBLE);
+            userProfileAdapter.updateUsers(dbHelper.getAllUsers());
+        } else {
+            Toast.makeText(this, "Invalid username or password", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleRegister()
+    {
+        String username = etUsername.getText().toString();
+        String password = etPassword.getText().toString();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please enter both username and password", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (dbHelper.getUser(username) != null) {
+            Toast.makeText(this, "Username already exists", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        User newUser = new User(username, password);
+        if (dbHelper.addUser(newUser)) {
+            currentUser = newUser;
+            loginRegisterLayout.setVisibility(View.GONE);
+            btnAddProfile.setVisibility(View.VISIBLE);
+            userProfileAdapter.updateUsers(dbHelper.getAllUsers());
+            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showUserInfo()
+    {
+        etUsername.setVisibility(View.GONE);
+        etPassword.setVisibility(View.GONE);
+        btnLogin.setVisibility(View.GONE);
+        btnRegister.setVisibility(View.GONE);
+
+        tvWelcome.setVisibility(View.VISIBLE);
+        tvHighScore.setVisibility(View.VISIBLE);
+
+        tvWelcome.setText("Welcome, " + currentUser.getUsername() + "!");
+        updateHighScoreDisplay(getCurrentDifficulty());
+    }
+
+    private String getCurrentDifficulty()
+    {
+        if (gridSize == 5 && numMines == 3) return "easy";
+        if (gridSize == 8 && numMines == 10) return "medium";
+        if (gridSize == 10 && numMines == 20) return "hard";
+        return "medium";
+    }
+
+    @Override
+    public void onGameOver(boolean won, int time)
+    {
+        if (won && currentUser != null) {
+            String difficulty = getCurrentDifficulty();
+            int currentHighScore = currentUser.getHighScore(difficulty);
+            if (time < currentHighScore) {
+                currentUser.setHighScore(difficulty, time);
+                dbHelper.updateHighScore(currentUser.getUsername(), difficulty, time);
+                tvHighScore.setText("New High Score: " + time + " seconds!");
+            }
+        }
     }
 
     private void setTextGradient(TextView textView, String startColor, String endColor)
@@ -62,36 +263,15 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private void initializeHomeUI()
-    {
+    private void initializeHomeUI() {
         TextView titleText = findViewById(R.id.titleText);
         Animation fadeScale = AnimationUtils.loadAnimation(this, R.anim.fade_scale_in);
         titleText.startAnimation(fadeScale);
 
-        TextView startButton = findViewById(R.id.startButton);
-        startButton.startAnimation(fadeScale);
-
-        startButton.setOnTouchListener((v, event) -> {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    v.setScaleX(0.95f);
-                    v.setScaleY(0.95f);
-                    return true;
-                case MotionEvent.ACTION_UP:
-                    v.setScaleX(1.0f);
-                    v.setScaleY(1.0f);
-                    showGameScreen();
-                    setupGame(8, 10);  // Explicitly set medium difficulty
-                    highlightDifficultyButton(btnMedium);  // Highlight medium button
-                    v.performClick();
-                    return true;
-                case MotionEvent.ACTION_CANCEL:
-                    v.setScaleX(1.0f);
-                    v.setScaleY(1.0f);
-                    return true;
-            }
-            return false;
-        });
+        etUsername.startAnimation(fadeScale);
+        etPassword.startAnimation(fadeScale);
+        btnLogin.startAnimation(fadeScale);
+        btnRegister.startAnimation(fadeScale);
     }
 
     private void highlightDifficultyButton(Button selected)
@@ -104,28 +284,18 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
                 selected == btnHard ? R.color.difficulty_hard : R.color.difficulty_unselected));
     }
 
-
-    private void setupDifficultyAndHintButtons()
-    {
-        btnEasy = findViewById(R.id.btnEasy);
-        btnMedium = findViewById(R.id.btnMedium);
-        btnHard = findViewById(R.id.btnHard);
-        Button btnHint = findViewById(R.id.btnHint);
-
-        btnEasy.setOnClickListener(v -> {
-            setupGame(5, 3);
-            highlightDifficultyButton(btnEasy);
-        });
-        btnMedium.setOnClickListener(v -> {
-            setupGame(8, 10);
-            highlightDifficultyButton(btnMedium);
-        });
-        btnHard.setOnClickListener(v -> {
-            setupGame(10, 20);
-            highlightDifficultyButton(btnHard);
-        });
-        if (btnHint != null)
-            btnHint.setOnClickListener(v -> revealHint());
+    private void updateHighScoreDisplay(String difficulty) {
+        if (currentUser != null && tvHighScore != null) {
+            int highScore = currentUser.getHighScore(difficulty);
+            String highScoreText;
+            if (highScore == Integer.MAX_VALUE) {
+                highScoreText = "No high score yet";
+            } else {
+                highScoreText = "High Score: " + highScore + " seconds";
+            }
+            tvHighScore.setText(highScoreText);
+            tvHighScore.setVisibility(View.VISIBLE);
+        }
     }
 
     private void showGameScreen()
@@ -376,32 +546,38 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
         timerHandler.removeCallbacks(timerRunnable);
         timerRunning = false;
 
-        int highScore = sharedPreferences.getInt("HighScore_" + gridSize, Integer.MAX_VALUE);
-        if (won && secondsPassed < highScore)
-        {
-            sharedPreferences.edit().putInt("HighScore_" + gridSize, secondsPassed).apply();
-            highScore = secondsPassed;
+        if (won && currentUser != null) {
+            String difficulty = getCurrentDifficulty();
+            int currentHighScore = currentUser.getHighScore(difficulty);
+            
+            if (secondsPassed < currentHighScore) {
+                currentUser.setHighScore(difficulty, secondsPassed);
+                dbHelper.updateHighScore(currentUser.getUsername(), difficulty, secondsPassed);
+                updateHighScoreDisplay(difficulty);
+                Toast.makeText(this, "New High Score: " + secondsPassed + " seconds!", Toast.LENGTH_LONG).show();
+            }
         }
 
-        new GameOverDialogFragment(won, secondsPassed, highScore)
+        new GameOverDialogFragment(won, secondsPassed, currentUser != null ? 
+            currentUser.getHighScore(getCurrentDifficulty()) : Integer.MAX_VALUE)
                 .show(getSupportFragmentManager(), "game_over");
     }
 
     private void revealHint()
     {
-        for (int row = 0; row < gridSize; row++)
-        {
-            for (int col = 0; col < gridSize; col++)
-            {
+        if (gameBoard == null) return;
+        
+        for (int row = 0; row < gridSize; row++) {
+            for (int col = 0; col < gridSize; col++) {
                 Tile tile = gameBoard.getTile(row, col);
-                if (!tile.isRevealed() && !tile.isMine() && !tile.isFlagged())
-                {
+                if (!tile.isRevealed() && !tile.isMine() && !tile.isFlagged()) {
                     gameBoard.revealTile(row, col);
                     updateGameUI();
                     return;
                 }
             }
         }
+        Toast.makeText(this, "No hints available!", Toast.LENGTH_SHORT).show();
     }
 
     private void startTimer()
@@ -414,12 +590,40 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
     public void onPlayAgain()
     {
         setupGame(gridSize, numMines);
+        updateHighScoreDisplay(getCurrentDifficulty());
     }
 
     @Override
     public void onReturnHome()
     {
         showHomeScreen();
+        userProfileAdapter.updateUsers(dbHelper.getAllUsers());
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (findViewById(R.id.gameLayout).getVisibility() == View.VISIBLE) {
+            showExitDialog();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private void showExitDialog() {
+        ExitGameDialogFragment dialog = new ExitGameDialogFragment();
+        dialog.setListener(this);
+        dialog.show(getSupportFragmentManager(), "exit_game");
+    }
+
+    @Override
+    public void onGoHome() {
+        showHomeScreen();
+        userProfileAdapter.updateUsers(dbHelper.getAllUsers());
+    }
+
+    @Override
+    public void onQuitGame() {
+        finish();
     }
 
 }

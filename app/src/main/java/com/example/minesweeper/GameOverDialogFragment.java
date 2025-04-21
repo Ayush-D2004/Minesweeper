@@ -20,6 +20,8 @@ public class GameOverDialogFragment extends DialogFragment
 
     public interface GameOverListener
     {
+        void onGameOver(boolean won, int time);
+
         void onPlayAgain();
 
         void onReturnHome();
