@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
 
     private GameBoard gameBoard;
     private Button btnEasy, btnMedium, btnHard;
-    private int gridSize = 5, numMines = 3;
+    private int gridSize = 8, numMines = 10;
     private GridLayout gameGrid;
     private TextView tvTimer, tvFlags;
     private Button[][] gridButtons;
@@ -67,11 +67,9 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
         TextView titleText = findViewById(R.id.titleText);
         Animation fadeScale = AnimationUtils.loadAnimation(this, R.anim.fade_scale_in);
         titleText.startAnimation(fadeScale);
-        //setTextGradient(titleText, "#9C27B0", "#2196F3");
 
         TextView startButton = findViewById(R.id.startButton);
         startButton.startAnimation(fadeScale);
-        //setTextGradient(startButton, "#2196F3", "#F44336");
 
         startButton.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
@@ -83,7 +81,8 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
                     v.setScaleX(1.0f);
                     v.setScaleY(1.0f);
                     showGameScreen();
-                    setupGame(gridSize, numMines);
+                    setupGame(8, 10);  // Explicitly set medium difficulty
+                    highlightDifficultyButton(btnMedium);  // Highlight medium button
                     v.performClick();
                     return true;
                 case MotionEvent.ACTION_CANCEL:
@@ -93,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
             }
             return false;
         });
-
     }
 
     private void highlightDifficultyButton(Button selected)
@@ -186,18 +184,29 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
         gameGrid.setColumnCount(gridSize);
         gameGrid.setRowCount(gridSize);
 
-        int buttonSize = calculateButtonSize();
-        gridButtons = new Button[gridSize][gridSize];
+        // Wait for layout to be measured before calculating button size
+        gameGrid.post(() -> {
+            int buttonSize = calculateButtonSize();
+            gridButtons = new Button[gridSize][gridSize];
 
-        for (int row = 0; row < gridSize; row++)
-            for (int col = 0; col < gridSize; col++)
-                createGridButton(row, col, buttonSize);
+            for (int row = 0; row < gridSize; row++)
+                for (int col = 0; col < gridSize; col++)
+                    createGridButton(row, col, buttonSize);
+        });
     }
 
     private int calculateButtonSize()
     {
         View container = findViewById(R.id.gridContainer);
-        return container.getWidth() / gridSize;
+        int containerWidth = container.getWidth();
+        int containerHeight = container.getHeight();
+        
+        // Calculate size based on the smaller dimension to ensure square buttons
+        int size = Math.min(containerWidth, containerHeight) / gridSize;
+        
+        // Add some padding to prevent edge bleeding
+        int padding = 4; // 2dp padding on each side
+        return Math.max(1, size - padding);  // Ensure size is at least 1
     }
 
     private void createGridButton(int row, int col, int size)
@@ -206,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements GameOverDialogFra
         GridLayout.LayoutParams params = new GridLayout.LayoutParams();
         params.width = size;
         params.height = size;
-        params.setMargins(0, 0, 0, 0);
+        params.setMargins(1, 1, 1, 1);  // Reduced margins to prevent bleeding
         button.setLayoutParams(params);
         button.setBackgroundResource(R.drawable.tile_background);
         button.setPadding(0, 0, 0, 0);
